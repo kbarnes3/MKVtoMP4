@@ -1,0 +1,5 @@
+# Generated Python files
+*.pyc
+
+# PyCharm files
+.idea
