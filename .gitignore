@@ -1,5 +1,6 @@
 # Generated Python files
 *.pyc
+build
 
 # PyCharm files
 .idea
