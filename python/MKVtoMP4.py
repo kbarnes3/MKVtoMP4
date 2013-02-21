@@ -9,6 +9,7 @@ MKV_SEARCH = '*' + MKV_EXTENSION
 MP4_SEARCH = '*' + MP4_EXTENSION
 FILES_MODE = '-files'
 MIRROR_MODE = '-mir'
+NOT_FLAG = '-not'
 
 
 def convert_videos(input_patterns, destination_directory):
@@ -23,14 +24,23 @@ def convert_videos(input_patterns, destination_directory):
             convert_video(file, output_file)
 
 
-def mirror_videos(source_directory, destination_directory):
+def mirror_videos(source_directory, destination_directory, exclusions):
     source_pattern = join(source_directory, MKV_SEARCH)
     source_glob = glob(source_pattern)
+    source_set = set(source_glob)
     destination_pattern = join(destination_directory, MP4_SEARCH)
     destination_glob = glob(destination_pattern)
     encode_list = []
 
-    for source_file in source_glob:
+    if exclusions:
+        for exclusion in exclusions:
+            exclusion_pattern = join(source_directory, exclusion)
+            exclusion_glob = glob(exclusion_pattern)
+            exclusion_set = set(exclusion_glob)
+
+            source_set -= exclusion_set
+
+    for source_file in source_set:
         destination_file = generate_output_name(source_file, destination_directory)
         if destination_file in destination_glob:
             destination_glob.remove(destination_file)
@@ -79,7 +89,7 @@ def convert_video(input_file, output_file):
 
 def print_usage():
     print('Usage: ' + sys.argv[0] + ' [-files] source_file [source_file]... destination_directory')
-    print('Usage: ' + sys.argv[0] + ' -mir source_directory destination_directory')
+    print('Usage: ' + sys.argv[0] + ' -mir source_directory destination_directory [-not pattern [pattern]...]')
 
 
 def _files_mode(first_file):
@@ -97,6 +107,25 @@ def _files_mode(first_file):
 
     convert_videos(source_files, destination_directory)
 
+
+def _mirror_mode():
+    # The first two arguments are the source and destination directires
+    source_directory = sys.argv[2]
+    destination_directory = sys.argv[3]
+    exclusions = None
+
+    # If the next parameter is the -not flag, everything else is a list of exclusions
+    if len(sys.argv) >= 5 and sys.argv[4].lower() == NOT_FLAG:
+        # We have to have at least one exclusion
+        if len(sys.argv) < 6:
+            print_usage()
+            sys.exit(1)
+
+        exclusions = sys.argv[5:]
+
+    mirror_videos(source_directory, destination_directory, exclusions)
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 3:
@@ -105,7 +134,7 @@ if __name__ == "__main__":
 
     # The first argument might be the mode to use, or it might be the first source file in files mode
     if sys.argv[1].lower() == MIRROR_MODE:
-        mirror_videos(sys.argv[2], sys.argv[3])
+        _mirror_mode()
     elif sys.argv[1].lower() == FILES_MODE:
         _files_mode(2)
     elif sys.argv[1][0] == '-':
