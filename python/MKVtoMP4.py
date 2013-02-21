@@ -16,33 +16,40 @@ def convert_videos(input_patterns, destination_directory):
             print('Warning: No files found matching ' + input_pattern)
 
         for file in files:
-            filename = basename(file)
-            # Strip the extension if it is .mkv
-            if filename.endswith(MKV_EXTENSION):
-                filename = filename[:-len(MKV_EXTENSION)]
+            output_file = generate_output_name(file, destination_directory)
+            convert_video(file, output_file)
 
-            filename += MP4_EXTENSION
-            output_file = join(destination_directory, filename)
 
-            print('Converting ' + file + ' to ' + output_file)
+def generate_output_name(input_file, destination_directory):
+    filename = basename(input_file)
+    # Strip the extension if it is .mkv
+    if filename.endswith(MKV_EXTENSION):
+        filename = filename[:-len(MKV_EXTENSION)]
 
-            call(['ffmpeg',
-                  '-i',
-                  file,
-                  '-c:v',
-                  'copy',
-                  '-c:a',
-                  'aac',
-                  '-cutoff',
-                  '15000',
-                  '-b:a',
-                  '192k',
-                  '-ac',
-                  '2',
-                  '-strict',
-                  '-2',
-                  output_file])
+    filename += MP4_EXTENSION
+    output_file = join(destination_directory, filename)
+    return output_file
 
+
+def convert_video(input_file, output_file):
+    print('Converting ' + input_file + ' to ' + output_file)
+
+    call(['ffmpeg',
+          '-i',
+          input_file,
+          '-c:v',
+          'copy',
+          '-c:a',
+          'aac',
+          '-cutoff',
+          '15000',
+          '-b:a',
+          '192k',
+          '-ac',
+          '2',
+          '-strict',
+          '-2',
+          output_file])
 
 def print_usage():
     print('Usage: ' + sys.argv[0] + ' [-files] source_file [source_file]... destination_directory')
