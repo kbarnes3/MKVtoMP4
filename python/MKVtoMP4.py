@@ -4,6 +4,8 @@ from subprocess import call
 
 MKV_EXTENSION = '.mkv'
 MP4_EXTENSION = '.mp4'
+MKV_SEARCH = '*' + MKV_EXTENSION
+MP4_SEARCH = '*' + MP4_EXTENSION
 FILES_MODE = '-files'
 MIRROR_MODE = '-mir'
 
@@ -18,6 +20,28 @@ def convert_videos(input_patterns, destination_directory):
         for file in files:
             output_file = generate_output_name(file, destination_directory)
             convert_video(file, output_file)
+
+
+def mirror_videos(source_directory, destination_directory):
+    source_pattern = join(source_directory, MKV_SEARCH)
+    source_glob = glob(source_pattern)
+    destination_pattern = join(destination_directory, MP4_SEARCH)
+    destination_glob = glob(destination_pattern)
+    encode_list = []
+
+    for source_file in source_glob:
+        destination_file = generate_output_name(source_file, destination_directory)
+        if destination_file in destination_glob:
+            destination_glob.remove(destination_file)
+        else:
+            encode_job = (source_file, destination_file)
+            encode_list.append(encode_job)
+
+    for destination_file in destination_glob:
+        print("Deleting " + destination_file)
+
+    print("Encode list:")
+    print(encode_list)
 
 
 def generate_output_name(input_file, destination_directory):
@@ -79,7 +103,7 @@ if __name__ == "__main__":
 
     # The first argument might be the mode to use, or it might be the first source file in files mode
     if sys.argv[1].lower() == MIRROR_MODE:
-        pass
+        mirror_videos(sys.argv[2], sys.argv[3])
     elif sys.argv[1].lower() == FILES_MODE:
         _files_mode(2)
     elif sys.argv[1][0] == '-':
