@@ -1,4 +1,5 @@
 from glob import glob
+from os import remove
 from os.path import basename, join
 from subprocess import call
 
@@ -39,9 +40,10 @@ def mirror_videos(source_directory, destination_directory):
 
     for destination_file in destination_glob:
         print("Deleting " + destination_file)
+        remove(destination_file)
 
-    print("Encode list:")
-    print(encode_list)
+    for input, output in encode_list:
+        convert_video(input, output)
 
 
 def generate_output_name(input_file, destination_directory):
