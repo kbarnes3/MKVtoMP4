@@ -41,6 +41,10 @@ def mirror_videos(source_directory, destination_directory, log_directory, exclus
     log_glob = glob(log_pattern)
     encode_list = []
 
+    if exclusions and only:
+        print('mirror_videos was passed both exclusions and only')
+        sys.exit(1)
+
     if exclusions:
         for exclusion in exclusions:
             exclusion_pattern = join(source_directory, exclusion)
@@ -48,6 +52,14 @@ def mirror_videos(source_directory, destination_directory, log_directory, exclus
             exclusion_set = set(exclusion_glob)
 
             source_set -= exclusion_set
+    elif only:
+        source_set = set()
+        for pattern in only:
+            only_pattern = join(source_directory, pattern)
+            only_glob = glob(only_pattern)
+            only_set = set(only_glob)
+
+            source_set |= only_set
 
     for source_file in source_set:
         destination_file = generate_output_name(source_file, destination_directory)
