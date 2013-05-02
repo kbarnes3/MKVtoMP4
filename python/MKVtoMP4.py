@@ -1,6 +1,6 @@
 from glob import glob
 from os import remove
-from os.path import basename, join
+from os.path import basename, exists, join
 from subprocess import call
 
 MKV_EXTENSION = '.mkv'
@@ -9,6 +9,7 @@ MKV_SEARCH = '*' + MKV_EXTENSION
 MP4_SEARCH = '*' + MP4_EXTENSION
 FILES_MODE = '-files'
 MIRROR_MODE = '-mir'
+ONLY_FLAG = '-only'
 NOT_FLAG = '-not'
 
 
@@ -19,17 +20,25 @@ def convert_videos(input_patterns, destination_directory):
         if len(files) == 0:
             print('Warning: No files found matching ' + input_pattern)
 
-        for file in files:
-            output_file = generate_output_name(file, destination_directory)
-            convert_video(file, output_file)
+        for input_file in files:
+            output_file = generate_output_name(input_file, destination_directory)
+            convert_video(input_file, output_file)
 
 
-def mirror_videos(source_directory, destination_directory, exclusions):
+def create_log_file(log_file):
+    if not exists(log_file):
+        f = open(log_file, 'w')
+        f.close()
+
+
+def mirror_videos(source_directory, destination_directory, log_directory, exclusions, only):
     source_pattern = join(source_directory, MKV_SEARCH)
     source_glob = glob(source_pattern)
     source_set = set(source_glob)
     destination_pattern = join(destination_directory, MP4_SEARCH)
     destination_glob = glob(destination_pattern)
+    log_pattern = join(log_directory, MP4_SEARCH)
+    log_glob = glob(log_pattern)
     encode_list = []
 
     if exclusions:
@@ -42,18 +51,26 @@ def mirror_videos(source_directory, destination_directory, exclusions):
 
     for source_file in source_set:
         destination_file = generate_output_name(source_file, destination_directory)
-        if destination_file in destination_glob:
-            destination_glob.remove(destination_file)
+        log_file = generate_output_name(source_file, log_directory)
+        if log_file in log_glob:
+            # We have a log of doing this conversion. We should make sure we keep the log
+            # intact and not convert it again.
+            log_glob.remove(log_file)
+        elif destination_file in destination_glob:
+            # We have the destination file, but not the log of doing it. Create the log.
+            create_log_file(log_file)
         else:
-            encode_job = (source_file, destination_file)
+            # We haven't converted this video yet. Queue it up
+            encode_job = (source_file, destination_file, log_file)
             encode_list.append(encode_job)
 
-    for destination_file in destination_glob:
-        print("Deleting " + destination_file)
-        remove(destination_file)
+    for log_file in log_glob:
+        print("Deleting " + log_file)
+        remove(log_file)
 
-    for input, output in encode_list:
-        convert_video(input, output)
+    for input_file, output_file, log_file in encode_list:
+        convert_video(input_file, output_file)
+        create_log_file(log_file)
 
 
 def generate_output_name(input_file, destination_directory):
@@ -89,7 +106,7 @@ def convert_video(input_file, output_file):
 
 def print_usage():
     print('Usage: ' + sys.argv[0] + ' [-files] source_file [source_file]... destination_directory')
-    print('Usage: ' + sys.argv[0] + ' -mir source_directory destination_directory [-not pattern [pattern]...]')
+    print('Usage: ' + sys.argv[0] + ' -mir source_directory destination_directory log_directory [-only | -not pattern [pattern]...]')
 
 
 def _files_mode(first_file):
@@ -109,21 +126,53 @@ def _files_mode(first_file):
 
 
 def _mirror_mode():
-    # The first two arguments are the source and destination directires
+    # The first two arguments are the source and destination directories
     source_directory = sys.argv[2]
     destination_directory = sys.argv[3]
+    log_directory = sys.argv[3] # If there isn't a log directory specified, the destination acts like it
     exclusions = None
+    only = None
 
-    # If the next parameter is the -not flag, everything else is a list of exclusions
-    if len(sys.argv) >= 5 and sys.argv[4].lower() == NOT_FLAG:
-        # We have to have at least one exclusion
-        if len(sys.argv) < 6:
-            print_usage()
-            sys.exit(1)
+    # The next parameter can either be -only, -not, or the log directory
+    if len(sys.argv) >= 5:
+        if sys.argv[4].lower() == ONLY_FLAG:
+            # We have to have at least one 'only' pattern
+            if len(sys.argv) < 6:
+                print_usage()
+                sys.exit(1)
 
-        exclusions = sys.argv[5:]
+            only = sys.argv[5:]
 
-    mirror_videos(source_directory, destination_directory, exclusions)
+        elif sys.argv[4].lower() == NOT_FLAG:
+            # We have to have at least one exclusion
+            if len(sys.argv) < 6:
+                print_usage()
+                sys.exit(1)
+
+            exclusions = sys.argv[5:]
+
+        else:
+            log_directory = sys.argv[4]
+
+            # The next parameter can either be -only or -not
+            if len(sys.argv) >= 6:
+                if sys.argv[5].lower() == ONLY_FLAG:
+                    # We have to have at least one 'only' pattern
+                    if len(sys.argv) < 7:
+                        print_usage()
+                        sys.exit(1)
+
+                    only = sys.argv[6:]
+
+                elif sys.argv[5].lower() == NOT_FLAG:
+                    # We have to have at least one exclusion
+                    if len(sys.argv) < 7:
+                        print_usage()
+                        sys.exit(1)
+
+                    exclusions = sys.argv[6:]
+
+    mirror_videos(source_directory, destination_directory, log_directory, exclusions, only)
 
 
 if __name__ == "__main__":
