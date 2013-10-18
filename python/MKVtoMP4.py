@@ -1,6 +1,7 @@
 from glob import glob
 from os import remove
 from os.path import basename, exists, join
+import shutil
 from subprocess import call
 
 MKV_EXTENSION = '.mkv'
@@ -81,19 +82,36 @@ def mirror_videos(source_directory, destination_directory, log_directory, exclus
         remove(log_file)
 
     for input_file, output_file, log_file in encode_list:
-        convert_video(input_file, output_file)
+        generate_output(input_file, output_file)
         create_log_file(log_file)
 
 
 def generate_output_name(input_file, destination_directory):
     filename = basename(input_file)
-    # Strip the extension if it is .mkv
-    if filename.endswith(MKV_EXTENSION):
-        filename = filename[:-len(MKV_EXTENSION)]
+    # Preserve the name if the extension is .mp4
+    if not filename.endswith(MP4_EXTENSION):
+        # Strip the extension if it is .mkv
+        if filename.endswith(MKV_EXTENSION):
+            filename = filename[:-len(MKV_EXTENSION)]
 
-    filename += MP4_EXTENSION
+        filename += MP4_EXTENSION
     output_file = join(destination_directory, filename)
     return output_file
+
+
+def generate_output(input_file, output_file):
+    # If the input already has an extension of .mp4, just copy it directly
+    if input_file.endswith(MP4_EXTENSION):
+        copy_video(input_file, output_file)
+    else:
+        # Otherwise convert the file using FFmpeg
+        convert_video(input_file, output_file)
+
+
+def copy_video(input_file, output_file):
+    print('Copying ' + input_file + ' to ' + output_file)
+
+    shutil.copyfile(input_file, output_file)
 
 
 def convert_video(input_file, output_file):
