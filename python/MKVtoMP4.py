@@ -44,7 +44,7 @@ def mirror_videos(source_directory, destination_directory, log_directory, exclus
 
     if exclusions and only:
         print('mirror_videos was passed both exclusions and only')
-        sys.exit(1)
+        exit_with_error()
 
     if exclusions:
         for exclusion in exclusions:
@@ -134,91 +134,100 @@ def convert_video(input_file, output_file):
           '-2',
           output_file])
 
-def print_usage():
-    print('Usage: ' + sys.argv[0] + ' [-files] source_file [source_file]... destination_directory')
-    print('Usage: ' + sys.argv[0] + ' -mir source_directory destination_directory log_directory [-only | -not pattern [pattern]...]')
+
+def print_usage(argv):
+    print('Usage: ' + argv[0] + ' [-files] source_file [source_file]... destination_directory')
+    print('Usage: ' + argv[0] + ' -mir source_directory destination_directory log_directory [-only | -not pattern [pattern]...]')
 
 
-def _files_mode(first_file):
-    # We need at least one file and one directory from sys.argv, so the length needs to be
+def _files_mode(argv, first_file):
+    # We need at least one file and one directory from argv, so the length needs to be
     # at least 2 greater than first_file
-    if len(sys.argv) < first_file + 2:
-        print_usage()
-        sys.exit(1)
+    if len(argv) < first_file + 2:
+        print_usage(argv)
+        exit_with_error()
 
     # The last argument is the destination directory
-    destination_directory = sys.argv[-1]
+    destination_directory = argv[-1]
 
-    # The file names start at sys.argv[first_file].
-    source_files = sys.argv[first_file:-1]
+    # The file names start at argv[first_file].
+    source_files = argv[first_file:-1]
 
     convert_videos(source_files, destination_directory)
 
 
-def _mirror_mode():
+def _mirror_mode(argv):
     # The first two arguments are the source and destination directories
-    source_directory = sys.argv[2]
-    destination_directory = sys.argv[3]
-    log_directory = sys.argv[3] # If there isn't a log directory specified, the destination acts like it
+    source_directory = argv[2]
+    destination_directory = argv[3]
+    log_directory = argv[3]  # If there isn't a log directory specified, the destination acts like it
     exclusions = None
     only = None
 
     # The next parameter can either be -only, -not, or the log directory
-    if len(sys.argv) >= 5:
-        if sys.argv[4].lower() == ONLY_FLAG:
+    if len(argv) >= 5:
+        if argv[4].lower() == ONLY_FLAG:
             # We have to have at least one 'only' pattern
-            if len(sys.argv) < 6:
-                print_usage()
-                sys.exit(1)
+            if len(argv) < 6:
+                print_usage(argv)
+                exit_with_error()
 
-            only = sys.argv[5:]
+            only = argv[5:]
 
-        elif sys.argv[4].lower() == NOT_FLAG:
+        elif argv[4].lower() == NOT_FLAG:
             # We have to have at least one exclusion
-            if len(sys.argv) < 6:
-                print_usage()
-                sys.exit(1)
+            if len(argv) < 6:
+                print_usage(argv)
+                exit_with_error()
 
-            exclusions = sys.argv[5:]
+            exclusions = argv[5:]
 
         else:
-            log_directory = sys.argv[4]
+            log_directory = argv[4]
 
             # The next parameter can either be -only or -not
-            if len(sys.argv) >= 6:
-                if sys.argv[5].lower() == ONLY_FLAG:
+            if len(argv) >= 6:
+                if argv[5].lower() == ONLY_FLAG:
                     # We have to have at least one 'only' pattern
-                    if len(sys.argv) < 7:
-                        print_usage()
-                        sys.exit(1)
+                    if len(argv) < 7:
+                        print_usage(argv)
+                        exit_with_error()
 
-                    only = sys.argv[6:]
+                    only = argv[6:]
 
-                elif sys.argv[5].lower() == NOT_FLAG:
+                elif argv[5].lower() == NOT_FLAG:
                     # We have to have at least one exclusion
-                    if len(sys.argv) < 7:
-                        print_usage()
-                        sys.exit(1)
+                    if len(argv) < 7:
+                        print_usage(argv)
+                        exit_with_error()
 
-                    exclusions = sys.argv[6:]
+                    exclusions = argv[6:]
 
     mirror_videos(source_directory, destination_directory, log_directory, exclusions, only)
 
 
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) < 3:
-        print_usage()
-        sys.exit(1)
+def exit_with_error():
+    sys.exit(1)
+
+
+def process_command_line(argv):
+    if len(argv) < 3:
+        print_usage(argv)
+        exit_with_error()
 
     # The first argument might be the mode to use, or it might be the first source file in files mode
-    if sys.argv[1].lower() == MIRROR_MODE:
+    if argv[1].lower() == MIRROR_MODE:
         _mirror_mode()
-    elif sys.argv[1].lower() == FILES_MODE:
+    elif argv[1].lower() == FILES_MODE:
         _files_mode(2)
-    elif sys.argv[1][0] == '-':
-        print('Unknown option: ' + sys.argv[1])
-        print_usage()
-        sys.exit(1)
+    elif argv[1][0] == '-':
+        print('Unknown option: ' + argv[1])
+        print_usage(argv)
+        exit_with_error()
     else:
         _files_mode(1)
+
+
+if __name__ == "__main__":
+    import sys
+    process_command_line(sys.argv)
