@@ -45,6 +45,7 @@ def mirror_videos(source_directory, destination_directory, log_directory, exclus
     if exclusions and only:
         print('mirror_videos was passed both exclusions and only')
         exit_with_error()
+        return
 
     if exclusions:
         for exclusion in exclusions:
@@ -146,6 +147,7 @@ def _files_mode(argv, first_file):
     if len(argv) < first_file + 2:
         print_usage(argv)
         exit_with_error()
+        return
 
     # The last argument is the destination directory
     destination_directory = argv[-1]
@@ -171,6 +173,7 @@ def _mirror_mode(argv):
             if len(argv) < 6:
                 print_usage(argv)
                 exit_with_error()
+                return
 
             only = argv[5:]
 
@@ -179,6 +182,7 @@ def _mirror_mode(argv):
             if len(argv) < 6:
                 print_usage(argv)
                 exit_with_error()
+                return
 
             exclusions = argv[5:]
 
@@ -192,6 +196,7 @@ def _mirror_mode(argv):
                     if len(argv) < 7:
                         print_usage(argv)
                         exit_with_error()
+                        return
 
                     only = argv[6:]
 
@@ -200,6 +205,7 @@ def _mirror_mode(argv):
                     if len(argv) < 7:
                         print_usage(argv)
                         exit_with_error()
+                        return
 
                     exclusions = argv[6:]
 
@@ -214,6 +220,7 @@ def process_command_line(argv):
     if len(argv) < 3:
         print_usage(argv)
         exit_with_error()
+        return
 
     # The first argument might be the mode to use, or it might be the first source file in files mode
     if argv[1].lower() == MIRROR_MODE:
@@ -224,6 +231,7 @@ def process_command_line(argv):
         print('Unknown option: ' + argv[1])
         print_usage(argv)
         exit_with_error()
+        return
     else:
         _files_mode(argv, 1)
 
