@@ -217,15 +217,15 @@ def process_command_line(argv):
 
     # The first argument might be the mode to use, or it might be the first source file in files mode
     if argv[1].lower() == MIRROR_MODE:
-        _mirror_mode()
+        _mirror_mode(argv)
     elif argv[1].lower() == FILES_MODE:
-        _files_mode(2)
+        _files_mode(argv, 2)
     elif argv[1][0] == '-':
         print('Unknown option: ' + argv[1])
         print_usage(argv)
         exit_with_error()
     else:
-        _files_mode(1)
+        _files_mode(argv, 1)
 
 
 if __name__ == "__main__":
