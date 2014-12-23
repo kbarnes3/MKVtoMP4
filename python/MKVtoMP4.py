@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from glob import glob
 from os import remove
 from os.path import basename, exists, join
@@ -8,10 +9,6 @@ MKV_EXTENSION = '.mkv'
 MP4_EXTENSION = '.mp4'
 MKV_SEARCH = '*' + MKV_EXTENSION
 MP4_SEARCH = '*' + MP4_EXTENSION
-FILES_MODE = '-files'
-MIRROR_MODE = '-mir'
-ONLY_FLAG = '-only'
-NOT_FLAG = '-not'
 
 
 def convert_videos(input_patterns, destination_directory):
@@ -141,21 +138,8 @@ def print_usage(argv):
     print('Usage: ' + argv[0] + ' -mir source_directory destination_directory log_directory [-only | -not pattern [pattern]...]')
 
 
-def _files_mode(argv, first_file):
-    # We need at least one file and one directory from argv, so the length needs to be
-    # at least 2 greater than first_file
-    if len(argv) < first_file + 2:
-        print_usage(argv)
-        exit_with_error()
-        return
-
-    # The last argument is the destination directory
-    destination_directory = argv[-1]
-
-    # The file names start at argv[first_file].
-    source_files = argv[first_file:-1]
-
-    convert_videos(source_files, destination_directory)
+def _files_mode(arguments):
+    convert_videos(arguments.inputs, arguments.output)
 
 
 def _mirror_mode(argv):
@@ -217,23 +201,23 @@ def exit_with_error():
 
 
 def process_command_line(argv):
-    if len(argv) < 3:
-        print_usage(argv)
-        exit_with_error()
-        return
+    parser = ArgumentParser()
+    parser.add_argument('-files', action='store_true')
+    parser.add_argument('-mir', action='store_true')
+    parser.add_argument('inputs', nargs='+')
+    parser.add_argument('output')
 
-    # The first argument might be the mode to use, or it might be the first source file in files mode
-    if argv[1].lower() == MIRROR_MODE:
-        _mirror_mode(argv)
-    elif argv[1].lower() == FILES_MODE:
-        _files_mode(argv, 2)
-    elif argv[1][0] == '-':
-        print('Unknown option: ' + argv[1])
-        print_usage(argv)
+    arguments = parser.parse_args(argv[1:])
+
+    if arguments.files and arguments.mir:
+        print("Can't pass both -files and -mir")
+        exit_with_error()
+
+    if arguments.mir:
         exit_with_error()
         return
     else:
-        _files_mode(argv, 1)
+        _files_mode(arguments)
 
 
 if __name__ == "__main__":
