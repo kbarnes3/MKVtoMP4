@@ -46,7 +46,46 @@ class TestCommandLine(unittest.TestCase):
             'MKVtoMP4.py',
             '-mir',
             'C:\\Input Videos',
-            'D:\\Output Videos'
+            'D:\\Output Videos',
         ]))
 
         mock_mirror_videos.assert_called_with('C:\\Input Videos', 'D:\\Output Videos', 'D:\\Output Videos', None, None)
+
+    @patch('MKVtoMP4.mirror_videos')
+    def test_mirror_videos_exclusions(self, mock_mirror_videos):
+        MKVtoMP4.process_command_line(([
+            'MKVtoMP4.py',
+            '-mir',
+            'C:\\Input Stuff',
+            'D:\\Mirror',
+            '-not',
+            'Boring*',
+            '-not',
+            'Slow*',
+            '-not',
+            'Long*',
+        ]))
+
+        mock_mirror_videos.assert_called_with('C:\\Input Stuff', 'D:\\Mirror', 'D:\\Mirror', [
+            'Boring*', '-not', 'Slow*', '-not', 'Long*',
+        ], None)
+
+    @patch('MKVtoMP4.mirror_videos')
+    def test_mirror_videos_log_only(self, mock_mirror_videos):
+        MKVtoMP4.process_command_line(([
+            'MKVtoMP4.py',
+            '-mir',
+            'C:\\Input',
+            'D:\\Output',
+            'E:\\Logs',
+            '-only',
+            'Interesting*',
+            '-only',
+            'Fast*',
+            '-only',
+            'Short*',
+        ]))
+
+        mock_mirror_videos.assert_called_with('C:\\Input', 'D:\\Output', 'E:\\Logs', None, [
+            'Interesting*', '-only', 'Fast*', '-only', 'Short*',
+        ])
