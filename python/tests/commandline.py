@@ -60,7 +60,7 @@ class TestCommandLine(unittest.TestCase):
         ]))
 
         mock_mirror_videos.assert_called_with('C:\\Input Stuff', 'D:\\Mirror', 'D:\\Mirror', [
-            'Boring*', '-not', 'Slow*', '-not', 'Long*',
+            'Boring*', 'Slow*', 'Long*',
         ], None)
 
     @patch('MKVtoMP4.mirror_videos')
@@ -80,5 +80,5 @@ class TestCommandLine(unittest.TestCase):
         ]))
 
         mock_mirror_videos.assert_called_with('C:\\Input', 'D:\\Output', 'E:\\Logs', None, [
-            'Interesting*', '-only', 'Fast*', '-only', 'Short*',
+            'Interesting*', 'Fast*', 'Short*',
         ])

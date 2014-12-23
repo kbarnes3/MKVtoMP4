@@ -133,65 +133,25 @@ def convert_video(input_file, output_file):
           output_file])
 
 
-def print_usage(argv):
-    print('Usage: ' + argv[0] + ' [-files] source_file [source_file]... destination_directory')
-    print('Usage: ' + argv[0] + ' -mir source_directory destination_directory log_directory [-only | -not pattern [pattern]...]')
-
-
 def _files_mode(arguments):
-    convert_videos(arguments.inputs, arguments.output)
+    if len(arguments.paths) < 2:
+        print('Files mode requires at least two paths')
+    convert_videos(arguments.paths[:-1], arguments.paths[-1])
 
 
-def _mirror_mode(argv):
-    # The first two arguments are the source and destination directories
-    source_directory = argv[2]
-    destination_directory = argv[3]
-    log_directory = argv[3]  # If there isn't a log directory specified, the destination acts like it
-    exclusions = None
-    only = None
+def _mirror_mode(arguments):
+    if len(arguments.paths) < 2 or len(arguments.paths) > 3:
+        print('Mirror mode can only take two or three paths')
 
-    # The next parameter can either be -only, -not, or the log directory
-    if len(argv) >= 5:
-        if argv[4].lower() == ONLY_FLAG:
-            # We have to have at least one 'only' pattern
-            if len(argv) < 6:
-                print_usage(argv)
-                exit_with_error()
-                return
+    # The first two paths are the source and destination directories
+    source_directory = arguments.paths[0]
+    destination_directory = arguments.paths[1]
+    log_directory = arguments.paths[1]  # If there isn't a log directory specified, the destination acts like it
+    exclusions = arguments.exclusions
+    only = arguments.only
 
-            only = argv[5:]
-
-        elif argv[4].lower() == NOT_FLAG:
-            # We have to have at least one exclusion
-            if len(argv) < 6:
-                print_usage(argv)
-                exit_with_error()
-                return
-
-            exclusions = argv[5:]
-
-        else:
-            log_directory = argv[4]
-
-            # The next parameter can either be -only or -not
-            if len(argv) >= 6:
-                if argv[5].lower() == ONLY_FLAG:
-                    # We have to have at least one 'only' pattern
-                    if len(argv) < 7:
-                        print_usage(argv)
-                        exit_with_error()
-                        return
-
-                    only = argv[6:]
-
-                elif argv[5].lower() == NOT_FLAG:
-                    # We have to have at least one exclusion
-                    if len(argv) < 7:
-                        print_usage(argv)
-                        exit_with_error()
-                        return
-
-                    exclusions = argv[6:]
+    if len(arguments.paths) == 3:
+        log_directory = arguments.paths[2]
 
     mirror_videos(source_directory, destination_directory, log_directory, exclusions, only)
 
@@ -204,8 +164,9 @@ def process_command_line(argv):
     parser = ArgumentParser()
     parser.add_argument('-files', action='store_true')
     parser.add_argument('-mir', action='store_true')
-    parser.add_argument('inputs', nargs='+')
-    parser.add_argument('output')
+    parser.add_argument('paths', nargs='*')
+    parser.add_argument('-not', action='append', dest='exclusions')
+    parser.add_argument('-only', action='append')
 
     arguments = parser.parse_args(argv[1:])
 
@@ -214,8 +175,7 @@ def process_command_line(argv):
         exit_with_error()
 
     if arguments.mir:
-        exit_with_error()
-        return
+        _mirror_mode(arguments)
     else:
         _files_mode(arguments)
 
