@@ -11,7 +11,7 @@ MKV_SEARCH = '*' + MKV_EXTENSION
 MP4_SEARCH = '*' + MP4_EXTENSION
 
 
-def convert_videos(input_patterns, destination_directory):
+def convert_videos(input_patterns, destination_directory, encoding_profile):
     for input_pattern in input_patterns:
         files = glob(input_pattern)
 
@@ -20,7 +20,7 @@ def convert_videos(input_patterns, destination_directory):
 
         for input_file in files:
             output_file = generate_output_name(input_file, destination_directory)
-            convert_video(input_file, output_file)
+            convert_video(input_file, output_file, encoding_profile)
 
 
 def create_log_file(log_file):
@@ -29,7 +29,7 @@ def create_log_file(log_file):
         f.close()
 
 
-def mirror_videos(source_directory, destination_directory, log_directory, exclusions, only):
+def mirror_videos(source_directory, destination_directory, log_directory, exclusions, only, encoding_profile):
     source_pattern = join(source_directory, MKV_SEARCH)
     source_glob = glob(source_pattern)
     source_set = set(source_glob)
@@ -80,7 +80,7 @@ def mirror_videos(source_directory, destination_directory, log_directory, exclus
         remove(log_file)
 
     for input_file, output_file, log_file in encode_list:
-        generate_output(input_file, output_file)
+        generate_output(input_file, output_file, encoding_profile)
         create_log_file(log_file)
 
 
@@ -97,13 +97,13 @@ def generate_output_name(input_file, destination_directory):
     return output_file
 
 
-def generate_output(input_file, output_file):
+def generate_output(input_file, output_file, encoding_profile):
     # If the input already has an extension of .mp4, just copy it directly
     if input_file.endswith(MP4_EXTENSION):
         copy_video(input_file, output_file)
     else:
         # Otherwise convert the file using FFmpeg
-        convert_video(input_file, output_file)
+        convert_video(input_file, output_file, encoding_profile)
 
 
 def copy_video(input_file, output_file):
@@ -112,83 +112,93 @@ def copy_video(input_file, output_file):
     shutil.copyfile(input_file, output_file)
 
 
-def convert_video(input_file, output_file):
+def convert_video(input_file, output_file, encoding_profile):
     print('Converting ' + input_file + ' to ' + output_file)
 
-    # Just convert audio
-    # call(['ffmpeg',
-    #       '-i',
-    #       input_file,
-    #       '-c:v',
-    #       'copy',
-    #       '-c:a',
-    #       'aac',
-    #       '-cutoff',
-    #       '15000',
-    #       '-b:a',
-    #       '192k',
-    #       '-ac',
-    #       '2',
-    #       '-strict',
-    #       '-2',
-    #       output_file])
+    if encoding_profile == 'video_passthrough':
+        call_parameters = [
+            'ffmpeg',
+            '-i',
+            input_file,
+            '-c:v',
+            'copy',
+            '-c:a',
+            'libfdk_aac',
+            '-cutoff',
+            '18000',
+            '-b:a',
+            '192k',
+            '-ac',
+            '2',
+            output_file,
+        ]
 
-    # Burn in subtitles at 1080p
-    call(['ffmpeg',
-          '-i',
-          input_file,
-          '-filter_complex',
-          '[0:v][0:s]overlay[overlaid]',
-          '-map',
-          '[overlaid]',
-          '-map',
-          '0:1',
-          '-c:v',
-          'libx264',
-          '-preset',
-          'medium',
-          '-crf',
-          '22',
-          '-c:a',
-          'libfdk_aac',
-          '-cutoff',
-          '18000',
-          '-b:a',
-          '192k',
-          '-ac',
-          '2',
-          output_file])
+    elif encoding_profile == 'burn_in':
+        call_parameters = [
+            'ffmpeg',
+            '-i',
+            input_file,
+            '-filter_complex',
+            '[0:v][0:s]overlay[overlaid]',
+            '-map',
+            '[overlaid]',
+            '-map',
+            '0:1',
+            '-c:v',
+            'libx264',
+            '-preset',
+            'medium',
+            '-crf',
+            '22',
+            '-c:a',
+            'libfdk_aac',
+            '-cutoff',
+            '18000',
+            '-b:a',
+            '192k',
+            '-ac',
+            '2',
+            output_file
+        ]
 
-    # Burn in subtitles at 720p
-    # call(['ffmpeg',
-    #       '-i',
-    #       input_file,
-    #       '-filter_complex',
-    #       '[0:v][0:s]overlay,scale=w=1280:h=720:force_original_aspect_ratio=decrease[scaled]',
-    #       '-map',
-    #       '[scaled]',
-    #       '-map',
-    #       '0:1',
-    #       '-c:v',
-    #       'libx264',
-    #       '-preset',
-    #       'medium',
-    #       '-crf',
-    #       '22',
-    #       '-c:a',
-    #       'libfdk_aac',
-    #       '-cutoff',
-    #       '18000',
-    #       '-b:a',
-    #       '192k',
-    #       '-ac',
-    #       '2',
-    #       output_file])
+    elif encoding_profile == '720p_burn_in':
+        call_parameters = [
+            'ffmpeg',
+            '-i',
+            input_file,
+            '-filter_complex',
+            '[0:v][0:s]overlay,scale=w=1280:h=720:force_original_aspect_ratio=decrease[scaled]',
+            '-map',
+            '[scaled]',
+            '-map',
+            '0:1',
+            '-c:v',
+            'libx264',
+            '-preset',
+            'medium',
+            '-crf',
+            '22',
+            '-c:a',
+            'libfdk_aac',
+            '-cutoff',
+            '18000',
+            '-b:a',
+            '192k',
+            '-ac',
+            '2',
+            output_file,
+        ]
+
+    else:
+        print('Unknown encoding profile: {0}'.format(encoding_profile))
+        exit_with_error()
+
+    call(call_parameters)
 
 def _files_mode(arguments):
     if len(arguments.paths) < 2:
         print('Files mode requires at least two paths')
-    convert_videos(arguments.paths[:-1], arguments.paths[-1])
+    convert_videos(arguments.paths[:-1], arguments.paths[-1], arguments.encoding_profile)
 
 
 def _mirror_mode(arguments):
@@ -205,7 +215,7 @@ def _mirror_mode(arguments):
     if len(arguments.paths) == 3:
         log_directory = arguments.paths[2]
 
-    mirror_videos(source_directory, destination_directory, log_directory, exclusions, only)
+    mirror_videos(source_directory, destination_directory, log_directory, exclusions, only, arguments.encoding_profile)
 
 
 def exit_with_error():
@@ -219,6 +229,7 @@ def process_command_line(argv):
     parser.add_argument('paths', nargs='*')
     parser.add_argument('-not', action='append', dest='exclusions')
     parser.add_argument('-only', action='append')
+    parser.add_argument('-encoding-profile', choices=['video_passthrough', 'burn_in', '720p_burn_in'], default='video_passthrough')
 
     arguments = parser.parse_args(argv[1:])
 

@@ -19,7 +19,7 @@ class TestCommandLine(unittest.TestCase):
             'D:\\Output Videos',
         ])
 
-        mock_convert_videos.assert_called_with(['C:\\Input Videos\\*.mkv'], 'D:\\Output Videos')
+        mock_convert_videos.assert_called_with(['C:\\Input Videos\\*.mkv'], 'D:\\Output Videos', 'video_passthrough')
 
     @patch('MKVtoMP4.convert_videos')
     def test_convert_multiple_files(self, mock_convert_videos):
@@ -31,7 +31,7 @@ class TestCommandLine(unittest.TestCase):
         ])
 
         mock_convert_videos.assert_called_with(['C:\\Input Videos\\Foo.S01E04.mkv', 'C:\\Input Videos\\Foo.S01E05.mkv'],
-                                               'D:\\Output Videos')
+                                               'D:\\Output Videos', 'video_passthrough')
 
     @patch('MKVtoMP4.mirror_videos')
     def test_mirror_videos(self, mock_mirror_videos):
@@ -42,7 +42,8 @@ class TestCommandLine(unittest.TestCase):
             'D:\\Output Videos',
         ]))
 
-        mock_mirror_videos.assert_called_with('C:\\Input Videos', 'D:\\Output Videos', 'D:\\Output Videos', None, None)
+        mock_mirror_videos.assert_called_with('C:\\Input Videos', 'D:\\Output Videos', 'D:\\Output Videos', None, None,
+                                              'video_passthrough')
 
     @patch('MKVtoMP4.mirror_videos')
     def test_mirror_videos_exclusions(self, mock_mirror_videos):
@@ -61,7 +62,7 @@ class TestCommandLine(unittest.TestCase):
 
         mock_mirror_videos.assert_called_with('C:\\Input Stuff', 'D:\\Mirror', 'D:\\Mirror', [
             'Boring*', 'Slow*', 'Long*',
-        ], None)
+        ], None, 'video_passthrough')
 
     @patch('MKVtoMP4.mirror_videos')
     def test_mirror_videos_log_only(self, mock_mirror_videos):
@@ -81,4 +82,4 @@ class TestCommandLine(unittest.TestCase):
 
         mock_mirror_videos.assert_called_with('C:\\Input', 'D:\\Output', 'E:\\Logs', None, [
             'Interesting*', 'Fast*', 'Short*',
-        ])
+        ], 'video_passthrough')
