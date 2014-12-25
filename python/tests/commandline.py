@@ -83,3 +83,31 @@ class TestCommandLine(unittest.TestCase):
         mock_mirror_videos.assert_called_with('C:\\Input', 'D:\\Output', 'E:\\Logs', None, [
             'Interesting*', 'Fast*', 'Short*',
         ], 'video_passthrough')
+
+    @patch('MKVtoMP4.mirror_videos')
+    def test_mirror_videos_burn_in(self, mock_mirror_videos):
+        MKVtoMP4.process_command_line(([
+            'MKVtoMP4.py',
+            '-mir',
+            'C:\\Input Videos',
+            'D:\\Output Videos',
+            '-encoding-profile',
+            'burn_in',
+        ]))
+
+        mock_mirror_videos.assert_called_with('C:\\Input Videos', 'D:\\Output Videos', 'D:\\Output Videos', None, None,
+                                              'burn_in')
+
+    @patch('MKVtoMP4.mirror_videos')
+    def test_mirror_videos_720p_burn_in(self, mock_mirror_videos):
+        MKVtoMP4.process_command_line(([
+            'MKVtoMP4.py',
+            '-mir',
+            'C:\\Input Videos',
+            'D:\\Output Videos',
+            '-encoding-profile',
+            '720p_burn_in',
+        ]))
+
+        mock_mirror_videos.assert_called_with('C:\\Input Videos', 'D:\\Output Videos', 'D:\\Output Videos', None, None,
+                                              '720p_burn_in')
