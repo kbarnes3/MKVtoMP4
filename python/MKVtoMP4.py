@@ -5,6 +5,8 @@ from os.path import basename, exists, join
 import shutil
 from subprocess import call
 
+from powermanagement import long_running
+
 MKV_EXTENSION = '.mkv'
 MP4_EXTENSION = '.mp4'
 MKV_SEARCH = '*' + MKV_EXTENSION
@@ -195,15 +197,18 @@ def convert_video(input_file, output_file, encoding_profile):
 
     call(call_parameters)
 
+
 def _files_mode(arguments):
     if len(arguments.paths) < 2:
         print('Files mode requires at least two paths')
+        exit_with_error()
     convert_videos(arguments.paths[:-1], arguments.paths[-1], arguments.encoding_profile)
 
 
 def _mirror_mode(arguments):
     if len(arguments.paths) < 2 or len(arguments.paths) > 3:
         print('Mirror mode can only take two or three paths')
+        exit_with_error()
 
     # The first two paths are the source and destination directories
     source_directory = arguments.paths[0]
@@ -222,6 +227,7 @@ def exit_with_error():
     sys.exit(1)
 
 
+@long_running
 def process_command_line(argv):
     parser = ArgumentParser()
     parser.add_argument('-files', action='store_true')
