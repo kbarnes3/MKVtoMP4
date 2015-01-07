@@ -74,9 +74,7 @@ class TestCommandLine(unittest.TestCase):
             'E:\\Logs',
             '-only',
             'Interesting*',
-            '-only',
             'Fast*',
-            '-only',
             'Short*',
         ]))
 
