@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from itertools import chain
 from glob import glob
 from os import remove
 from os.path import basename, exists, join
@@ -217,8 +218,14 @@ def _mirror_mode(arguments):
     source_directory = arguments.paths[0]
     destination_directory = arguments.paths[1]
     log_directory = arguments.paths[1]  # If there isn't a log directory specified, the destination acts like it
-    exclusions = arguments.exclusions
-    only = arguments.only
+    if arguments.exclusions:
+        exclusions = list(chain(*arguments.exclusions))
+    else:
+        exclusions = None
+    if arguments.only:
+        only = list(chain(*arguments.only))
+    else:
+        only = None
 
     if len(arguments.paths) == 3:
         log_directory = arguments.paths[2]
@@ -236,8 +243,8 @@ def process_command_line(argv):
     parser.add_argument('-files', action='store_true')
     parser.add_argument('-mir', action='store_true')
     parser.add_argument('paths', nargs='*')
-    parser.add_argument('-not', action='append', dest='exclusions')
-    parser.add_argument('-only', action='append')
+    parser.add_argument('-not', action='append', dest='exclusions', nargs='*')
+    parser.add_argument('-only', action='append', nargs='*')
     parser.add_argument('-encoding-profile', choices=['video_passthrough', 'burn_in', '720p_burn_in'], default='video_passthrough')
 
     arguments = parser.parse_args(argv[1:])
