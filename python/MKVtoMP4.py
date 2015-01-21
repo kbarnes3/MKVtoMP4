@@ -173,11 +173,40 @@ def convert_video(input_file, output_file, encoding_profile):
             input_file,
             '-y',
             '-filter_complex',
-            '[0:v][0:s]overlay,scale=w=1280:h=720:force_original_aspect_ratio=decrease[scaled]',
+            '[0:v][0:s]overlay,scale=w=1280:h=720:force_original_aspect_ratio=decrease,scale=w=trunc(iw/2)*2:h=trunc(ih/2)*2[scaled]',
             '-map',
             '[scaled]',
             '-map',
             '0:1',
+            '-c:v',
+            'libx264',
+            '-preset',
+            'medium',
+            '-crf',
+            '22',
+            '-c:a',
+            'libfdk_aac',
+            '-cutoff',
+            '18000',
+            '-b:a',
+            '192k',
+            '-ac',
+            '2',
+            output_file,
+        ]
+
+    elif encoding_profile == '720p':
+        call_parameters = [
+            'ffmpeg',
+            '-i',
+            input_file,
+            '-y',
+            '-filter_complex',
+            '[0:v]scale=w=1280:h=720:force_original_aspect_ratio=decrease,scale=w=trunc(iw/2)*2:h=trunc(ih/2)*2[scaled]',
+            '-map',
+            '[scaled]',
+            '-map',
+            '0:a',
             '-c:v',
             'libx264',
             '-preset',
@@ -245,7 +274,7 @@ def process_command_line(argv):
     parser.add_argument('paths', nargs='*')
     parser.add_argument('-not', action='append', dest='exclusions', nargs='*')
     parser.add_argument('-only', action='append', nargs='*')
-    parser.add_argument('-encoding-profile', choices=['video_passthrough', 'burn_in', '720p_burn_in'], default='video_passthrough')
+    parser.add_argument('-encoding-profile', choices=['video_passthrough', 'burn_in', '720p_burn_in', '720p'], default='video_passthrough')
 
     arguments = parser.parse_args(argv[1:])
 
