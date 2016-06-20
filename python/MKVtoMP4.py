@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from itertools import chain
 from glob import glob
-from os import remove
+from os import listdir, remove
 from os.path import basename, exists, join
 import shutil
 from subprocess import call
@@ -85,6 +85,19 @@ def mirror_videos(source_directory, destination_directory, log_directory, exclus
     for input_file, output_file, log_file in encode_list:
         generate_output(input_file, output_file, encoding_profile)
         create_log_file(log_file)
+
+
+def process_queue(source_directory, destination_directory, queue_directory, encoding_profile):
+    queue = listdir(queue_directory)
+    for queued_name in queue:
+        source_file = join(source_directory, queued_name)
+        if exists(source_file):
+            destination_file = generate_output_name(source_file, destination_directory)
+            generate_output(source_file, destination_file, encoding_profile)
+            queued_file = join(queue_directory, queued_name)
+            remove(queued_file)
+        else:
+            print("Warning: {0} does not exist".format(source_file))
 
 
 def generate_output_name(input_file, destination_directory):
