@@ -1,4 +1,5 @@
 # Generated Python files
+.cache
 *.pyc
 build
 venv
