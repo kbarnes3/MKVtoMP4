@@ -1,6 +1,6 @@
 from mock import call, patch
 
-import MKVtoMP4
+import MKVtoMP4.queue
 
 
 basic_mkvs = [
@@ -37,14 +37,14 @@ def create_empty_queue_directory(tmpdir):
     return create_empty_directory(tmpdir, 'queue')
 
 
-@patch('MKVtoMP4.generate_output')
+@patch('MKVtoMP4.queue.generate_output')
 def test_empty_queue(mock_generate_output, tmpdir):
     source_directory = create_basic_source_directory(tmpdir)
     destination_directory = create_empty_destination_directory(tmpdir)
     queue_directory = create_empty_queue_directory(tmpdir)
     original_source_len = len(source_directory.listdir())
 
-    MKVtoMP4.process_queue(str(source_directory),
+    MKVtoMP4.queue.process_queue(str(source_directory),
                            str(destination_directory),
                            str(queue_directory),
                            'video_passthrough')
@@ -55,7 +55,7 @@ def test_empty_queue(mock_generate_output, tmpdir):
     assert len(queue_directory.listdir()) == 0
 
 
-@patch('MKVtoMP4.generate_output')
+@patch('MKVtoMP4.queue.generate_output')
 def test_complete_queue(mock_generate_output, tmpdir):
     source_directory = create_basic_source_directory(tmpdir)
     destination_directory = create_empty_destination_directory(tmpdir)
@@ -71,7 +71,7 @@ def test_complete_queue(mock_generate_output, tmpdir):
     source_name2 = str(source_directory.join(file_name2))
     destination_name2 = str(destination_directory.join(output_name2))
 
-    MKVtoMP4.process_queue(str(source_directory),
+    MKVtoMP4.queue.process_queue(str(source_directory),
                            str(destination_directory),
                            str(queue_directory),
                            'video_passthrough')
@@ -87,7 +87,7 @@ def test_complete_queue(mock_generate_output, tmpdir):
     assert len(queue_directory.listdir()) == 0
 
 
-@patch('MKVtoMP4.generate_output')
+@patch('MKVtoMP4.queue.generate_output')
 def test_partial_queue(mock_generate_output, tmpdir):
     source_directory = create_basic_source_directory(tmpdir)
     destination_directory = create_empty_destination_directory(tmpdir)
@@ -100,7 +100,7 @@ def test_partial_queue(mock_generate_output, tmpdir):
     source_name2 = str(source_directory.join(file_name2))
     destination_name2 = str(destination_directory.join(output_name2))
 
-    MKVtoMP4.process_queue(str(source_directory),
+    MKVtoMP4.queue.process_queue(str(source_directory),
                            str(destination_directory),
                            str(queue_directory),
                            'video_passthrough')
