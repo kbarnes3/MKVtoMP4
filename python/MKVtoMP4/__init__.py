@@ -59,8 +59,3 @@ def process_command_line(argv):
         _mirror_mode(arguments)
     else:
         _files_mode(arguments)
-
-
-if __name__ == "__main__":
-    import sys
-    process_command_line(sys.argv)
