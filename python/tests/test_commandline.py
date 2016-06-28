@@ -109,3 +109,21 @@ class TestCommandLine(unittest.TestCase):
 
         mock_mirror_videos.assert_called_with('C:\\Input Videos', 'D:\\Output Videos', 'D:\\Output Videos', None, None,
                                               '720p_burn_in')
+
+    @patch('MKVtoMP4.process_queue')
+    def test_queue(self, mock_process_queue):
+        MKVtoMP4.process_command_line(([
+            'MKVtoMP4.py',
+            '-queue',
+            'C:\\All the Videos',
+            'D:\\Output Videos',
+            'E:\\To Convert',
+            '-encoding-profile',
+            'video_passthrough',
+        ]))
+
+        mock_process_queue.assert_called_with(
+            'C:\\All the Videos',
+            'D:\\Output Videos',
+            'E:\\To Convert',
+            'video_passthrough')
