@@ -1,12 +1,12 @@
 from argparse import ArgumentParser
 from itertools import chain
 
-from control_flow import exit_with_error
-from files import convert_videos
-from mirror import mirror_videos
-from output import convert_video, generate_output_name
-from powermanagement import long_running
-from queue import process_queue
+from .control_flow import exit_with_error
+from .files import convert_videos
+from .mirror import mirror_videos
+from .output import convert_video, generate_output_name
+from .powermanagement import long_running
+from .queue import process_queue
 
 
 def _files_mode(arguments):

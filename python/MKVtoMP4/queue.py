@@ -1,7 +1,7 @@
 from os import listdir, remove
 from os.path import exists, join
 
-from output import generate_output, generate_output_name
+from .output import generate_output, generate_output_name
 
 
 def process_queue(source_directory, destination_directory, queue_directory, encoding_profile):

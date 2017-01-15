@@ -1,6 +1,6 @@
 from glob import glob
 
-from output import convert_video, generate_output_name
+from .output import convert_video, generate_output_name
 
 
 def convert_videos(input_patterns, destination_directory, encoding_profile):

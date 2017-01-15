@@ -2,9 +2,9 @@ from glob import glob
 from os import remove
 from os.path import exists, join
 
-from control_flow import exit_with_error
-from name_constants import *
-from output import generate_output, generate_output_name
+from .control_flow import exit_with_error
+from .name_constants import *
+from .output import generate_output, generate_output_name
 
 
 def mirror_videos(source_directory, destination_directory, log_directory, exclusions, only, encoding_profile):

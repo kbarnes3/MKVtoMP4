@@ -2,8 +2,8 @@ from os.path import basename, join
 import shutil
 from subprocess import call
 
-from control_flow import exit_with_error
-from name_constants import *
+from .control_flow import exit_with_error
+from .name_constants import *
 
 
 def generate_output_name(input_file, destination_directory):
