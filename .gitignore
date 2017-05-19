@@ -3,6 +3,7 @@
 *.pyc
 build
 venv
+*.egg-info
 
 # PyCharm files
 .idea
