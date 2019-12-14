@@ -92,7 +92,7 @@ def convert_video(input_file, output_file, encoding_profile):
             input_file,
             '-y',
             '-filter_complex',
-            '[0:v][0:s]overlay,scale=w=min(1280,iw):h=min(720,ih):force_original_aspect_ratio=decrease,'
+            '[0:v][0:s]overlay,scale=w=min(1280\\,iw):h=min(720\\,ih):force_original_aspect_ratio=decrease,'
             'scale=w=trunc(iw/2)*2:h=trunc(ih/2)*2[scaled]',
             '-map',
             '[scaled]',
@@ -122,7 +122,7 @@ def convert_video(input_file, output_file, encoding_profile):
             input_file,
             '-y',
             '-filter_complex',
-            '[0:v]scale=w=min(1280,iw):h=min(720,ih):force_original_aspect_ratio=decrease,'
+            '[0:v]scale=w=min(1280\\,iw):h=min(720\\,ih):force_original_aspect_ratio=decrease,' 
             'scale=w=trunc(iw/2)*2:h=trunc(ih/2)*2[scaled]',
             '-map',
             '[scaled]',
